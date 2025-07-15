@@ -1,55 +1,24 @@
 plugins{
-    id("com.android.application")
-    id("kotlin-android")
-    id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics") version "2.9.9"
+id("com.google.gms.google-services") version "4.4.2" 
 }
-
-android {
-    namespace = "com.example.flutter_auth"
-    compileSdk = 34 // Recommended to use latest SDK
-
-    ndkVersion = "25.2.9519653" // ✅ Must match the folder name in your sdk/ndk directory
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-
-    defaultConfig {
-        applicationId = "com.example.flutter_auth"
-        minSdk = 23
-        targetSdk = 34
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
-
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("debug")
-        }
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
     }
 }
 
-flutter {
-    source = "../.."
+val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
+rootProject.layout.buildDirectory.value(newBuildDir)
+
+subprojects {
+    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
+    project.layout.buildDirectory.value(newSubprojectBuildDir)
+}
+subprojects {
+    project.evaluationDependsOn(":app")
 }
 
-dependencies {
-    // Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
-
-    // Firebase libraries (versions managed by BoM)
-    implementation("com.google.firebase:firebase-crashlytics-ndk")
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth")
+tasks.register<Delete>("clean") {
+    delete(rootProject.layout.buildDirectory)
 }
-
-//If the app isn’t on Play Store yet or running in debug mode, you might face SMS sending limits unless you use test numbers.
-
-//No, you're not able to receive real OTP SMS on a simulator/emulator unless the emulator has Google Play Services and SIM/network support, which most don’t.
